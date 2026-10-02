@@ -1,0 +1,12 @@
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+
+# Generated experiment logs and plots
+artifacts/
+
+# Build outputs
+build/
+dist/
+*.egg-info/

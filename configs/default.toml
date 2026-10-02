@@ -1,0 +1,34 @@
+# Номинальная КОМПЬЮТЕРНАЯ конфигурация для разработки симуляции.
+# Это не измеренные параметры реального макета. Перед аппаратным запуском
+# значения должны быть заменены на подтверждённые или идентифицированные.
+
+[pendulum]
+# SI units: kg, m, kg*m^2, N, N*m*s/rad.
+cart_mass_kg = 0.50
+pendulum_mass_kg = 0.20
+center_of_mass_length_m = 0.30
+# Inertia about the pendulum centre of mass, not about the pivot.
+pendulum_inertia_kg_m2 = 0.018
+gravitational_acceleration_m_s2 = 9.80665
+cart_viscous_friction_n_s_per_m = 0.05
+pendulum_viscous_friction_n_m_s_per_rad = 0.005
+max_force_n = 10.0
+
+[simulation]
+# Fixed-step integration.
+dt_s = 0.002
+duration_s = 4.0
+
+[initial_state]
+cart_position_m = 0.0
+cart_velocity_m_s = 0.0
+pendulum_angle_rad = 0.10
+pendulum_angular_velocity_rad_s = 0.0
+
+[safety]
+# These limits are conservative simulation defaults, not hardware limits.
+max_cart_position_m = 1.8
+max_cart_velocity_m_s = 3.0
+max_pendulum_angle_rad = 1.4835298642 # 85 degrees from upright
+max_pendulum_angular_velocity_rad_s = 15.0
+max_command_slew_per_s = 5.0
