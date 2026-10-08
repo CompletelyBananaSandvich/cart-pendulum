@@ -43,6 +43,8 @@ class SafetySupervisor:
         state: State,
         requested: ActuatorCommand,
         dt_s: float,
+        *,
+        check_pendulum_angle: bool = True,
     ) -> SafetyResult:
         """Check a requested command and return either it or a disabled command."""
 
@@ -55,7 +57,7 @@ class SafetySupervisor:
         except ValueError:
             return self._fault("non_finite_state")
 
-        violations = (
+        violations: list[tuple[bool, str]] = [
             (
                 abs(state.cart_position_m) > self.limits.max_cart_position_m,
                 "cart_position_limit",
@@ -64,16 +66,22 @@ class SafetySupervisor:
                 abs(state.cart_velocity_m_s) > self.limits.max_cart_velocity_m_s,
                 "cart_velocity_limit",
             ),
-            (
-                abs(state.pendulum_angle_rad) > self.limits.max_pendulum_angle_rad,
-                "pendulum_angle_limit",
-            ),
+        ]
+        if check_pendulum_angle and self.limits.max_pendulum_angle_rad is not None:
+            violations.append(
+                (
+                    abs(state.pendulum_angle_rad) > self.limits.max_pendulum_angle_rad,
+                    "pendulum_angle_limit",
+                )
+            )
+        violations.append(
             (
                 abs(state.pendulum_angular_velocity_rad_s)
                 > self.limits.max_pendulum_angular_velocity_rad_s,
                 "pendulum_angular_velocity_limit",
-            ),
+            )
         )
+
         for violated, reason in violations:
             if violated:
                 return self._fault(reason)

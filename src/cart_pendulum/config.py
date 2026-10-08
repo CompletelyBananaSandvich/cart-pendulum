@@ -86,7 +86,7 @@ class SafetyLimits:
 
     max_cart_position_m: float = 1.8
     max_cart_velocity_m_s: float = 3.0
-    max_pendulum_angle_rad: float = math.radians(85.0)
+    max_pendulum_angle_rad: float | None = math.radians(85.0)
     max_pendulum_angular_velocity_rad_s: float = 15.0
     max_command_slew_per_s: float = 5.0
 
@@ -94,15 +94,17 @@ class SafetyLimits:
         values = {
             "max_cart_position_m": self.max_cart_position_m,
             "max_cart_velocity_m_s": self.max_cart_velocity_m_s,
-            "max_pendulum_angle_rad": self.max_pendulum_angle_rad,
             "max_pendulum_angular_velocity_rad_s": self.max_pendulum_angular_velocity_rad_s,
             "max_command_slew_per_s": self.max_command_slew_per_s,
         }
         for name, value in values.items():
             if not math.isfinite(value) or value <= 0.0:
                 raise ValueError(f"{name} must be finite and greater than zero")
-        if self.max_pendulum_angle_rad >= math.pi:
-            raise ValueError("max_pendulum_angle_rad must be less than pi")
+        if self.max_pendulum_angle_rad is not None:
+            if not math.isfinite(self.max_pendulum_angle_rad) or self.max_pendulum_angle_rad <= 0.0:
+                raise ValueError("max_pendulum_angle_rad must be finite and greater than zero")
+            if self.max_pendulum_angle_rad >= math.pi:
+                raise ValueError("max_pendulum_angle_rad must be less than pi")
 
 
 @dataclass(frozen=True)
@@ -164,12 +166,15 @@ def load_config(path: str | Path) -> ProjectConfig:
         duration_s=float(simulation_data.get("duration_s", 4.0)),
         initial_state=initial_state,
     )
+    angle_limit_raw = safety_data.get("max_pendulum_angle_rad", math.radians(85.0))
+    if angle_limit_raw is None or angle_limit_raw is False or str(angle_limit_raw).lower() == "none":
+        max_pendulum_angle_rad = None
+    else:
+        max_pendulum_angle_rad = float(angle_limit_raw)
     safety = SafetyLimits(
         max_cart_position_m=float(safety_data.get("max_cart_position_m", 1.8)),
         max_cart_velocity_m_s=float(safety_data.get("max_cart_velocity_m_s", 3.0)),
-        max_pendulum_angle_rad=float(
-            safety_data.get("max_pendulum_angle_rad", math.radians(85.0))
-        ),
+        max_pendulum_angle_rad=max_pendulum_angle_rad,
         max_pendulum_angular_velocity_rad_s=float(
             safety_data.get("max_pendulum_angular_velocity_rad_s", 15.0)
         ),
